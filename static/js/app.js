@@ -26,9 +26,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Utility functions
     function showApiStatus(message, type) {
-        const alertClass = type === 'success' ? 'alert-success' : 
-                          type === 'error' ? 'alert-danger' : 'alert-info';
-        apiStatusDiv.innerHTML = `<div class="alert ${alertClass} mb-0">${message}</div>`;
+        const statusDiv = document.getElementById('apiStatus');
+        if (statusDiv) {
+            statusDiv.innerHTML = `<div class="alert alert-${type === 'success' ? 'success' : 'danger'}" role="alert">${message}</div>`;
+        }
     }
 
     function showGenerationStatus(message, type) {

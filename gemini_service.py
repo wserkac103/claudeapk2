@@ -1,19 +1,18 @@
 import google.generativeai as genai
 import os
 import logging
+import json
 from PIL import Image
-from google.generativeai import types
 
 class GeminiService:
     def __init__(self):
-        self.client = None
         self.api_key = None
 
     def set_api_key(self, api_key):
-        """Set the Gemini API key and initialize client"""
+        """Set the Gemini API key and configure the client"""
         try:
             self.api_key = api_key
-            self.client = genai.Client(api_key=api_key)
+            genai.configure(api_key=api_key)
             return True
         except Exception as e:
             logging.error(f"Error setting API key: {str(e)}")
@@ -22,13 +21,11 @@ class GeminiService:
     def test_connection(self):
         """Test the Gemini API connection with a simple call"""
         try:
-            if not self.client:
-                return False, "API client not initialized"
+            if not self.api_key:
+                return False, "API key not set"
 
-            response = self.client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents="Hello, this is a test. Please respond with 'API connection successful.'"
-            )
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content("Hello, this is a test. Please respond with 'API connection successful.'")
 
             if response.text and "API connection successful" in response.text:
                 return True, "API connection successful"
@@ -44,22 +41,24 @@ class GeminiService:
     def analyze_image(self, image_path):
         """Analyze uploaded image for GUI design insights"""
         try:
-            if not self.client:
+            if not self.api_key:
                 return None
 
+            model = genai.GenerativeModel('gemini-1.5-pro')
+            
+            # Load and prepare the image
             with open(image_path, "rb") as f:
-                image_bytes = f.read()
-                response = self.client.models.generate_content(
-                    model="gemini-2.5-pro",
-                    contents=[
-                        types.Part.from_bytes(
-                            data=image_bytes,
-                            mime_type="image/jpeg",
-                        ),
-                        "Analyze this image and describe what kind of mobile app UI design it represents. Focus on layout, colors, components, and user interface elements that could be implemented in an Android app."
-                    ],
-                )
-
+                image_data = f.read()
+            
+            # Create the image part
+            image_part = {
+                "mime_type": "image/jpeg",
+                "data": image_data
+            }
+            
+            prompt = "Analyze this image and describe what kind of mobile app UI design it represents. Focus on layout, colors, components, and user interface elements that could be implemented in an Android app."
+            
+            response = model.generate_content([prompt, image_part])
             return response.text if response.text else "Could not analyze image"
 
         except Exception as e:
@@ -69,40 +68,45 @@ class GeminiService:
     def generate_android_app(self, prompt, image_path=None, preview_only=False):
         """Generate Android app structure based on prompt and optional image"""
         try:
-            if not self.client:
+            if not self.api_key:
                 return None
 
-            # Build the content for the request
-            content_parts = []
+            model = genai.GenerativeModel('gemini-1.5-pro')
 
             # Add image analysis if provided
             image_analysis = ""
             if image_path and os.path.exists(image_path):
                 image_analysis = self.analyze_image(image_path)
                 if image_analysis:
-                    content_parts.append(f"GUI Design Reference: {image_analysis}\n\n")
+                    prompt = f"GUI Design Reference: {image_analysis}\n\nUser Requirements: {prompt}"
+                else:
+                    prompt = f"User Requirements: {prompt}"
+            else:
+                prompt = f"User Requirements: {prompt}"
 
             # Create the main prompt
-            system_prompt = """You are an expert Android app developer. Generate a complete Android app structure based on the user's requirements.
+            full_prompt = f"""You are an expert Android app developer. Generate a complete Android app structure based on the user's requirements.
+
+{prompt}
 
 Return your response as valid JSON with the following structure:
-{
+{{
   "app_name": "App Name",
   "package_name": "com.example.appname",
   "description": "Brief description of the app",
-  "main_activity": {
+  "main_activity": {{
     "name": "MainActivity",
     "layout": "activity_main",
     "java_code": "Complete Java code for MainActivity",
     "xml_layout": "Complete XML layout code"
-  },
+  }},
   "additional_activities": [
-    {
+    {{
       "name": "ActivityName",
       "layout": "layout_name",
       "java_code": "Complete Java code",
       "xml_layout": "Complete XML layout code"
-    }
+    }}
   ],
   "styles": "Complete styles.xml content",
   "colors": "Complete colors.xml content",
@@ -110,27 +114,18 @@ Return your response as valid JSON with the following structure:
   "manifest": "Complete AndroidManifest.xml content",
   "gradle": "Complete build.gradle content",
   "ui_components": [
-    {
+    {{
       "type": "Button|TextView|ImageView|etc",
       "id": "component_id",
       "text": "display text",
-      "properties": {}
-    }
+      "properties": {{}}
+    }}
   ]
-}
+}}
 
-Make sure all code is complete, functional, and follows Android development best practices."""
+Make sure all code is complete, functional, and follows Android development best practices. Return only the JSON, no other text."""
 
-            user_prompt = f"{' '.join(content_parts)}User Requirements: {prompt}"
-
-            response = self.client.models.generate_content(
-                model="gemini-2.5-pro",
-                contents=user_prompt,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_prompt,
-                    response_mime_type="application/json"
-                )
-            )
+            response = model.generate_content(full_prompt)
 
             if not response.text:
                 return None
