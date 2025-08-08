@@ -173,9 +173,9 @@
     // API Key status
     const apiKeySet = {{ api_key_set|tojson }};
     
-    // Wait for the app.js to load first
-    document.addEventListener('DOMContentLoaded', function() {
-        if (apiKeySet) {
+    // Wait for both DOM and app.js to load
+    window.addEventListener('load', function() {
+        if (apiKeySet && typeof showApiStatus === 'function') {
             document.getElementById('testApiKey').disabled = false;
             showApiStatus('API key is configured', 'success');
         }
