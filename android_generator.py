@@ -13,17 +13,17 @@ class AndroidGenerator:
             'app/src/main/': {},
             'app/': {}
         }
-    
+
     def create_android_project(self, app_structure, project_id):
         """Create complete Android project structure with generated code"""
         try:
             project_path = os.path.join(app.config['GENERATED_PROJECTS_FOLDER'], project_id)
             os.makedirs(project_path, exist_ok=True)
-            
+
             # Extract package name and create directory structure
             package_name = app_structure.get('package_name', 'com.example.myapp')
             package_path = package_name.replace('.', '/')
-            
+
             # Create directory structure
             directories = [
                 f'app/src/main/java/{package_path}',
@@ -36,16 +36,16 @@ class AndroidGenerator:
                 'app/src/main/res/mipmap-xxhdpi',
                 'app/src/main/res/mipmap-xxxhdpi'
             ]
-            
+
             for directory in directories:
                 os.makedirs(os.path.join(project_path, directory), exist_ok=True)
-            
+
             # Create MainActivity.java
             main_activity = app_structure.get('main_activity', {})
             if main_activity.get('java_code'):
                 with open(os.path.join(project_path, f'app/src/main/java/{package_path}/MainActivity.java'), 'w') as f:
                     f.write(main_activity['java_code'])
-            
+
             # Create additional activities
             additional_activities = app_structure.get('additional_activities', [])
             for activity in additional_activities:
@@ -53,37 +53,37 @@ class AndroidGenerator:
                     activity_name = activity.get('name', 'Activity')
                     with open(os.path.join(project_path, f'app/src/main/java/{package_path}/{activity_name}.java'), 'w') as f:
                         f.write(activity['java_code'])
-            
+
             # Create layout files
             if main_activity.get('xml_layout'):
                 layout_name = main_activity.get('layout', 'activity_main')
                 with open(os.path.join(project_path, f'app/src/main/res/layout/{layout_name}.xml'), 'w') as f:
                     f.write(main_activity['xml_layout'])
-            
+
             # Create additional layout files
             for activity in additional_activities:
                 if activity.get('xml_layout'):
                     layout_name = activity.get('layout', 'layout')
                     with open(os.path.join(project_path, f'app/src/main/res/layout/{layout_name}.xml'), 'w') as f:
                         f.write(activity['xml_layout'])
-            
+
             # Create resource files
             resource_files = {
                 'strings.xml': app_structure.get('strings'),
                 'colors.xml': app_structure.get('colors'),
                 'styles.xml': app_structure.get('styles')
             }
-            
+
             for filename, content in resource_files.items():
                 if content:
                     with open(os.path.join(project_path, f'app/src/main/res/values/{filename}'), 'w') as f:
                         f.write(content)
-            
+
             # Create AndroidManifest.xml
             if app_structure.get('manifest'):
                 with open(os.path.join(project_path, 'app/src/main/AndroidManifest.xml'), 'w') as f:
                     f.write(app_structure['manifest'])
-            
+
             # Create build.gradle
             if app_structure.get('gradle'):
                 with open(os.path.join(project_path, 'app/build.gradle'), 'w') as f:
@@ -93,49 +93,53 @@ class AndroidGenerator:
                 default_gradle = self.generate_default_gradle(app_structure)
                 with open(os.path.join(project_path, 'app/build.gradle'), 'w') as f:
                     f.write(default_gradle)
-            
+
             # Create project-level build.gradle
             project_gradle = self.generate_project_gradle()
             with open(os.path.join(project_path, 'build.gradle'), 'w') as f:
                 f.write(project_gradle)
-            
+
             # Create settings.gradle
             with open(os.path.join(project_path, 'settings.gradle'), 'w') as f:
                 f.write("include ':app'\n")
-            
+
             # Create gradle.properties
+            gradle_props = self.generate_gradle_properties()
             with open(os.path.join(project_path, 'gradle.properties'), 'w') as f:
-                f.write(self.generate_gradle_properties())
-            
+                f.write(gradle_props)
+
+            # Create Gradle wrapper files
+            self.create_gradle_wrapper(project_path)
+
             # Create README.md
             readme_content = self.generate_readme(app_structure)
             with open(os.path.join(project_path, 'README.md'), 'w') as f:
                 f.write(readme_content)
-            
+
             return project_path
-            
+
         except Exception as e:
             logging.error(f"Error creating Android project: {str(e)}")
             return None
-    
+
     def generate_preview_html(self, app_structure):
         """Generate HTML preview of the Android app GUI"""
         try:
             app_name = app_structure.get('app_name', 'My Android App')
             ui_components = app_structure.get('ui_components', [])
-            
+
             # Extract colors for theming
             colors_xml = app_structure.get('colors', '')
             primary_color = self.extract_color(colors_xml, 'colorPrimary', '#2196F3')
             accent_color = self.extract_color(colors_xml, 'colorAccent', '#FF4081')
-            
+
             # Generate HTML for UI components
             components_html = ""
             for component in ui_components:
                 comp_type = component.get('type', 'TextView')
                 comp_text = component.get('text', 'Component')
                 comp_id = component.get('id', 'component')
-                
+
                 if comp_type == 'Button':
                     components_html += f'''
                     <button class="btn btn-primary mb-2 w-100" style="background-color: {primary_color};">
@@ -163,7 +167,7 @@ class AndroidGenerator:
                         <small class="text-muted">{comp_type}:</small> {comp_text}
                     </div>
                     '''
-            
+
             preview_html = f'''
             <div class="card">
                 <div class="card-header text-center" style="background-color: {primary_color}; color: white;">
@@ -177,13 +181,13 @@ class AndroidGenerator:
                 </div>
             </div>
             '''
-            
+
             return preview_html
-            
+
         except Exception as e:
             logging.error(f"Error generating preview HTML: {str(e)}")
             return '<div class="alert alert-warning">Could not generate preview</div>'
-    
+
     def extract_color(self, colors_xml, color_name, default_color):
         """Extract color value from colors.xml content"""
         try:
@@ -200,12 +204,12 @@ class AndroidGenerator:
             return default_color
         except:
             return default_color
-    
+
     def generate_default_gradle(self, app_structure):
         """Generate default build.gradle for app module"""
         package_name = app_structure.get('package_name', 'com.example.myapp')
         app_name = app_structure.get('app_name', 'MyApp').replace(' ', '')
-        
+
         return f'''apply plugin: 'com.android.application'
 
 android {{
@@ -242,7 +246,7 @@ dependencies {{
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }}'''
-    
+
     def generate_project_gradle(self):
         """Generate project-level build.gradle"""
         return '''// Top-level build file where you can add configuration options common to all sub-projects/modules.
@@ -254,7 +258,7 @@ plugins {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }'''
-    
+
     def generate_gradle_properties(self):
         """Generate gradle.properties"""
         return '''# Project-wide Gradle settings.
@@ -280,13 +284,39 @@ android.useAndroidX=true
 android.nonTransitiveRClass=true
 # Automatically convert third-party libraries to use AndroidX
 android.enableJetifier=true'''
-    
+
+    def create_gradle_wrapper(self, project_path):
+        """Create Gradle wrapper files"""
+        gradle_wrapper_dir = os.path.join(project_path, 'gradle', 'wrapper')
+        os.makedirs(gradle_wrapper_dir, exist_ok=True)
+
+        # Create gradle-wrapper.properties
+        with open(os.path.join(gradle_wrapper_dir, 'gradle-wrapper.properties'), 'w') as f:
+            f.write("distributionBase=GRADLE_USER_HOME\n")
+            f.write("distributionPath=wrapper/dists\n")
+            f.write("distributionUrl=https\\://services.gradle.org/distributions/gradle-8.2-bin.zip\n")
+            f.write("zipStoreBase=GRADLE_USER_HOME\n")
+            f.write("zipStorePath=wrapper/dists\n")
+
+        # Create gradlew (Linux/macOS)
+        with open(os.path.join(project_path, 'gradlew'), 'w') as f:
+            f.write("#!/usr/bin/env sh\n")
+            f.write("eval \"$(dirname $0)/gradlew\" \"$@\"\n")
+        os.chmod(os.path.join(project_path, 'gradlew'), 0o755)
+
+        # Create gradlew.bat (Windows)
+        with open(os.path.join(project_path, 'gradlew.bat'), 'w') as f:
+            f.write("@echo off\n")
+            f.write("if not defined PROG do set PROG=%0\n")
+            f.write("call \"%PROG%\" --sys-prop org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8 \"%@\"\n")
+
+
     def generate_readme(self, app_structure):
         """Generate README.md for the Android project"""
         app_name = app_structure.get('app_name', 'Android App')
         description = app_structure.get('description', 'Generated Android application')
         package_name = app_structure.get('package_name', 'com.example.myapp')
-        
+
         return f'''# {app_name}
 
 {description}
