@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             `;
-            
+
             // Check for rate limit messages and show popup
             if (message.toLowerCase().includes('rate limit') || 
                 message.toLowerCase().includes('quota') || 
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             `;
-            
+
             // Check for rate limit messages and show popup
             if (message.toLowerCase().includes('rate limit') || 
                 message.toLowerCase().includes('quota') || 
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    
+
 
     function hideLoadingModal() {
         if (loadingModal) loadingModal.hide();
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             document.body.appendChild(popup);
         }
-        
+
         const bsModal = new bootstrap.Modal(popup);
         bsModal.show();
     }
@@ -132,7 +132,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const type = apiKeyInput.type === 'password' ? 'text' : 'password';
             apiKeyInput.type = type;
             const icon = this.querySelector('i');
-            icon.className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+            if (icon) {
+                icon.className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+            }
         });
     }
 
@@ -190,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    
+
 
     function showLoadingModal(title, message) {
         // Create or show loading modal
@@ -200,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.id = 'loadingModal';
             modal.className = 'modal fade';
             modal.innerHTML = `
-                <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-dialog modal-centered">
                     <div class="modal-content">
                         <div class="modal-body text-center">
                             <div class="spinner-border mb-3" role="status">
@@ -219,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (titleElement) titleElement.textContent = title;
             if (messageElement) messageElement.textContent = message;
         }
-        
+
         const bsModal = new bootstrap.Modal(modal);
         bsModal.show();
     }
@@ -273,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    
+
 
     if (removeImageBtn) {
         removeImageBtn.addEventListener('click', function() {
