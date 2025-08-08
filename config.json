@@ -14,8 +14,8 @@
     "min_android_sdk": 21
   },
   "gemini_api_key": "AIzaSyCxqgVkz-6OD_J_wSfx5c5qQ2AljCC7kjE",
-  "ai_provider": "huggingface",
+  "ai_provider": "groq",
   "api_url": "",
-  "groq_api_key": "API connection failed: 400 API key not valid. Please pass a valid API key. [reason: \"API_KEY_INVALID\" domain: \"googleapis.com\" metadata { key: \"service\" value: \"generativelanguage.googleapis.com\" } , locale: \"en-US\" message: \"API key not valid. Please pass a valid API key.\" ]",
+  "groq_api_key": "The push was rejected by the remote. This is usually because the remote has commits that aren't in the local repository.",
   "huggingface_api_key": "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"
 }
