@@ -344,6 +344,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const formData = new FormData();
                 formData.append('prompt', prompt);
+                formData.append('provider', $('#provider').val());
+                formData.append('api_url', $('#api-url').val());
                 if (uploadedImageFilename) {
                     formData.append('uploaded_image', uploadedImageFilename);
                 }

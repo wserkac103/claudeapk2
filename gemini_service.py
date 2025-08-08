@@ -2,37 +2,84 @@ import google.generativeai as genai
 import os
 import logging
 import json
+import requests
 from PIL import Image
 
-class GeminiService:
+class AIService:
     def __init__(self):
         self.api_key = None
+        self.provider = "gemini"  # Default provider
+        self.api_url = None
 
-    def set_api_key(self, api_key):
-        """Set the Gemini API key and configure the client"""
+    def set_api_key(self, api_key, provider="gemini", api_url=None):
+        """Set the API key and configure the client for different providers"""
         try:
             self.api_key = api_key
-            genai.configure(api_key=api_key)
+            self.provider = provider.lower()
+            self.api_url = api_url
+            
+            if self.provider == "gemini":
+                genai.configure(api_key=api_key)
+            elif self.provider == "ollama":
+                # Ollama runs locally, no API key needed
+                self.api_url = api_url or "http://localhost:11434"
+            elif self.provider == "groq":
+                # Groq API for Llama models
+                self.api_url = api_url or "https://api.groq.com/openai/v1"
+            elif self.provider == "huggingface":
+                # Hugging Face Inference API
+                self.api_url = api_url or "https://api-inference.huggingface.co/models"
+            
             return True
         except Exception as e:
             logging.error(f"Error setting API key: {str(e)}")
             return False
 
     def test_connection(self):
-        """Test the Gemini API connection with a simple call"""
+        """Test the API connection with a simple call"""
         try:
-            if not self.api_key:
-                return False, "API key not set"
-
-            model = genai.GenerativeModel('gemini-1.5-flash')
-            response = model.generate_content("Hello, this is a test. Please respond with 'API connection successful.'")
-
-            if response.text and "API connection successful" in response.text:
-                return True, "API connection successful"
-            elif response.text:
-                return True, f"API connected. Response: {response.text[:100]}"
-            else:
-                return False, "API response was empty"
+            if self.provider == "gemini":
+                if not self.api_key:
+                    return False, "API key not set"
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                response = model.generate_content("Hello, this is a test. Please respond with 'API connection successful.'")
+                if response.text and "API connection successful" in response.text:
+                    return True, "API connection successful"
+                elif response.text:
+                    return True, f"API connected. Response: {response.text[:100]}"
+                else:
+                    return False, "API response was empty"
+            
+            elif self.provider == "ollama":
+                response = requests.get(f"{self.api_url}/api/tags")
+                if response.status_code == 200:
+                    return True, "Ollama connection successful"
+                else:
+                    return False, "Ollama server not responding"
+            
+            elif self.provider == "groq":
+                headers = {"Authorization": f"Bearer {self.api_key}"}
+                data = {
+                    "messages": [{"role": "user", "content": "Hello, test connection"}],
+                    "model": "llama3-8b-8192"
+                }
+                response = requests.post(f"{self.api_url}/chat/completions", headers=headers, json=data)
+                if response.status_code == 200:
+                    return True, "Groq API connection successful"
+                else:
+                    return False, f"Groq API error: {response.status_code}"
+            
+            elif self.provider == "huggingface":
+                headers = {"Authorization": f"Bearer {self.api_key}"}
+                response = requests.post(f"{self.api_url}/microsoft/DialoGPT-medium", 
+                                       headers=headers, 
+                                       json={"inputs": "Hello"})
+                if response.status_code == 200:
+                    return True, "Hugging Face API connection successful"
+                else:
+                    return False, f"Hugging Face API error: {response.status_code}"
+            
+            return False, "Unknown provider"
 
         except Exception as e:
             error_msg = str(e)
@@ -40,9 +87,61 @@ class GeminiService:
             
             # Check for rate limit errors
             if any(keyword in error_msg.lower() for keyword in ['rate limit', 'quota', 'limit exceeded', '429']):
-                return False, f"Gemini API rate limit exceeded. Please wait or upgrade your plan. Details: {error_msg}"
+                return False, f"{self.provider.title()} API rate limit exceeded. Please wait or upgrade your plan. Details: {error_msg}"
             else:
                 return False, f"API connection failed: {error_msg}"
+
+    def generate_content(self, prompt, image_path=None):
+        """Generate content using the configured AI provider"""
+        try:
+            if self.provider == "gemini":
+                model = genai.GenerativeModel('gemini-1.5-pro')
+                if image_path and os.path.exists(image_path):
+                    with open(image_path, "rb") as f:
+                        image_data = f.read()
+                    image_part = {"mime_type": "image/jpeg", "data": image_data}
+                    response = model.generate_content([prompt, image_part])
+                else:
+                    response = model.generate_content(prompt)
+                return response.text if response.text else None
+            
+            elif self.provider == "ollama":
+                data = {
+                    "model": "llama3.2",  # Default Llama model
+                    "prompt": prompt,
+                    "stream": False
+                }
+                response = requests.post(f"{self.api_url}/api/generate", json=data)
+                if response.status_code == 200:
+                    return response.json().get("response")
+                return None
+            
+            elif self.provider == "groq":
+                headers = {"Authorization": f"Bearer {self.api_key}"}
+                data = {
+                    "messages": [{"role": "user", "content": prompt}],
+                    "model": "llama3-8b-8192"
+                }
+                response = requests.post(f"{self.api_url}/chat/completions", headers=headers, json=data)
+                if response.status_code == 200:
+                    return response.json()["choices"][0]["message"]["content"]
+                return None
+            
+            elif self.provider == "huggingface":
+                headers = {"Authorization": f"Bearer {self.api_key}"}
+                data = {"inputs": prompt}
+                response = requests.post(f"{self.api_url}/microsoft/DialoGPT-medium", 
+                                       headers=headers, json=data)
+                if response.status_code == 200:
+                    result = response.json()
+                    if isinstance(result, list) and len(result) > 0:
+                        return result[0].get("generated_text", "")
+                return None
+            
+            return None
+        except Exception as e:
+            logging.error(f"Error generating content with {self.provider}: {str(e)}")
+            return None
 
     def analyze_image(self, image_path):
         """Analyze uploaded image for GUI design insights"""
@@ -74,10 +173,8 @@ class GeminiService:
     def generate_android_app(self, prompt, image_path=None, preview_only=False):
         """Generate Android app structure based on prompt and optional image"""
         try:
-            if not self.api_key:
+            if self.provider != "ollama" and not self.api_key:
                 return None
-
-            model = genai.GenerativeModel('gemini-1.5-pro')
 
             # Add image analysis if provided
             image_analysis = ""
@@ -131,15 +228,15 @@ Return your response as valid JSON with the following structure:
 
 Make sure all code is complete, functional, and follows Android development best practices. Return only the JSON, no other text."""
 
-            response = model.generate_content(full_prompt)
+            response_text = self.generate_content(full_prompt, image_path)
 
-            if not response.text:
+            if not response_text:
                 return None
 
             # Parse the JSON response
             try:
                 # Clean the response text
-                text = response.text.strip()
+                text = response_text.strip()
 
                 # Check if response starts with HTML (error page)
                 if text.startswith('<'):

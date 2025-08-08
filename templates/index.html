@@ -13,19 +13,32 @@
             </div>
             <div class="card-body">
                 <div class="mb-3">
-                    <label for="apiKey" class="form-label">Gemini API Key</label>
+                    <label for="provider" class="form-label">AI Provider:</label>
+                    <select id="provider" class="form-select">
+                        <option value="gemini">Google Gemini (Recommended)</option>
+                        <option value="groq">Groq (Free Llama Models)</option>
+                        <option value="ollama">Ollama (Local Llama)</option>
+                        <option value="huggingface">Hugging Face</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="apiKey" class="form-label">API Key</label>
                     <div class="input-group">
-                        <input type="password" class="form-control" id="apiKey" placeholder="Enter your Gemini API key">
+                        <input type="password" class="form-control" id="apiKey" placeholder="Enter your API key">
                         <button class="btn btn-outline-secondary" type="button" id="toggleApiKey">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
-                    <div class="form-text">
-                        Get your API key from 
+                    <div class="form-text" id="api-help">
+                        Get your free API key from 
                         <a href="https://ai.google.dev/" target="_blank">Google AI Studio</a>
                     </div>
                 </div>
-                
+                <div class="mb-3" id="api-url-group" style="display: none;">
+                    <label for="apiUrl" class="form-label">API URL (Optional)</label>
+                    <input type="text" class="form-control" id="apiUrl" placeholder="Custom API endpoint">
+                </div>
+
                 <div class="d-grid gap-2">
                     <button type="button" class="btn btn-primary" id="saveApiKey">
                         <i class="fas fa-save"></i>
@@ -36,7 +49,7 @@
                         Test Connection
                     </button>
                 </div>
-                
+
                 <div id="apiStatus" class="mt-3"></div>
             </div>
         </div>
@@ -56,7 +69,7 @@
                         Upload an image to help guide the app's design
                     </div>
                 </div>
-                
+
                 <div id="imagePreview" class="mt-3" style="display: none;">
                     <img id="previewImg" class="img-fluid rounded" alt="Design reference">
                     <button type="button" class="btn btn-sm btn-outline-danger mt-2" id="removeImage">
@@ -84,7 +97,7 @@
                         <textarea class="form-control" id="appPrompt" rows="5" 
                                   placeholder="Describe the Android app you want to create. Be specific about functionality, layout, colors, and features. For example: 'Create a todo app with a modern blue theme, featuring a list of tasks, add/edit buttons, and checkboxes to mark completed items.'"></textarea>
                     </div>
-                    
+
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" class="btn btn-outline-primary" id="updatePreview">
                             <i class="fas fa-eye"></i>
@@ -96,7 +109,7 @@
                         </button>
                     </div>
                 </form>
-                
+
                 <div id="generationStatus" class="mt-3"></div>
             </div>
         </div>
@@ -172,12 +185,35 @@
 <script>
     // API Key status
     const apiKeySet = {{ api_key_set|tojson }};
-    
+
     // Wait for both DOM and app.js to load
     window.addEventListener('load', function() {
         if (apiKeySet && typeof showApiStatus === 'function') {
             document.getElementById('testApiKey').disabled = false;
             showApiStatus('API key is configured', 'success');
+        }
+    });
+
+    // Handle provider change
+    document.getElementById('provider').addEventListener('change', function() {
+        const selectedProvider = this.value;
+        const apiKeyHelp = document.getElementById('api-help');
+        const apiUrlGroup = document.getElementById('api-url-group');
+
+        if (selectedProvider === 'gemini') {
+            apiKeyHelp.innerHTML = 'Get your free API key from <a href="https://ai.google.dev/" target="_blank">Google AI Studio</a>';
+            apiUrlGroup.style.display = 'none';
+        } else if (selectedProvider === 'groq') {
+            apiKeyHelp.innerHTML = 'Get your free API key from <a href="https://console.groq.com/keys" target="_blank">Groq Cloud</a>';
+            apiUrlGroup.style.display = 'none';
+        } else if (selectedProvider === 'ollama') {
+            apiKeyHelp.innerHTML = 'Your Ollama API key is optional. Learn more <a href="https://ollama.com/" target="_blank">here</a>.';
+            apiUrlGroup.style.display = 'block';
+            apiUrlGroup.querySelector('label').textContent = 'API URL (Optional):';
+            document.getElementById('apiUrl').placeholder = 'http://localhost:11434';
+        } else if (selectedProvider === 'huggingface') {
+            apiKeyHelp.innerHTML = 'Get your free API key from <a href="https://huggingface.co/settings/tokens" target="_blank">Hugging Face Settings</a>';
+            apiUrlGroup.style.display = 'none';
         }
     });
 </script>
