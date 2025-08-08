@@ -26,6 +26,7 @@ class GeminiService:
             elif self.provider == "groq":
                 # Groq API for Llama models
                 self.api_url = api_url or "https://api.groq.com/openai/v1"
+                # Don't configure genai for Groq
             elif self.provider == "huggingface":
                 # Hugging Face Inference API
                 self.api_url = api_url or "https://api-inference.huggingface.co/models"

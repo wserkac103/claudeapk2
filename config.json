@@ -14,7 +14,8 @@
     "min_android_sdk": 21
   },
   "gemini_api_key": "AIzaSyCxqgVkz-6OD_J_wSfx5c5qQ2AljCC7kjE",
-  "ai_provider": "groq",
+  "ai_provider": "huggingface",
   "api_url": "",
-  "groq_api_key": "Unsupported AI provider: groq"
+  "groq_api_key": "API connection failed: 400 API key not valid. Please pass a valid API key. [reason: \"API_KEY_INVALID\" domain: \"googleapis.com\" metadata { key: \"service\" value: \"generativelanguage.googleapis.com\" } , locale: \"en-US\" message: \"API key not valid. Please pass a valid API key.\" ]",
+  "huggingface_api_key": "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"
 }
