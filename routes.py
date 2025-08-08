@@ -56,12 +56,18 @@ def save_api_key():
         config = load_config()
         config['ai_provider'] = provider
         config['api_url'] = api_url
-        
+
         # Store API key securely, perhaps not directly in config if sensitive
         if provider == 'gemini':
             config['gemini_api_key'] = api_key
         elif provider == 'llama':
             config['llama_api_key'] = api_key # Example for Llama
+        elif provider == 'groq':
+            config['groq_api_key'] = api_key
+        elif provider == 'ollama':
+            config['ollama_api_key'] = api_key
+        elif provider == 'huggingface':
+            config['huggingface_api_key'] = api_key
 
         save_config(config)
 
@@ -77,7 +83,25 @@ def save_api_key():
             # For now, we'll just set a placeholder if LlamaService isn't fully integrated yet
             ai_service = GeminiService() # Placeholder, replace with actual LlamaService initialization
             ai_service.set_api_key(api_key) # Placeholder
-            app.logger.warning("LlamaService not fully implemented. Using GeminiService as placeholder.")
+            app.logger.warning("LlamaService not fully implemented yet. Using GeminiService as placeholder.")
+        elif provider == 'groq':
+            # Assuming GroqService is available
+            # ai_service = GroqService(api_key=api_key)
+            ai_service = GeminiService() # Placeholder, replace with actual GroqService initialization
+            ai_service.set_api_key(api_key) # Placeholder
+            app.logger.warning("GroqService not fully implemented yet. Using GeminiService as placeholder.")
+        elif provider == 'ollama':
+            # Assuming OllamaService is available
+            # ai_service = OllamaService(api_url=api_url) # Ollama often uses local URL, API key might not be needed or handled differently
+            ai_service = GeminiService() # Placeholder, replace with actual OllamaService initialization
+            # ai_service.set_api_key(api_key) # Placeholder, may not be applicable for Ollama
+            app.logger.warning("OllamaService not fully implemented yet. Using GeminiService as placeholder.")
+        elif provider == 'huggingface':
+            # Assuming HuggingFaceService is available
+            # ai_service = HuggingFaceService(api_key=api_key)
+            ai_service = GeminiService() # Placeholder, replace with actual HuggingFaceService initialization
+            ai_service.set_api_key(api_key) # Placeholder
+            app.logger.warning("HuggingFaceService not fully implemented yet. Using GeminiService as placeholder.")
         else:
             return jsonify({'success': False, 'message': f'Unsupported AI provider: {provider}'})
 
@@ -92,11 +116,22 @@ def test_api_key():
     try:
         config = load_config()
         provider = config.get('ai_provider', 'gemini')
-        api_key = config.get('gemini_api_key') if provider == 'gemini' else config.get('llama_api_key') # Adjust based on provider
         api_url = config.get('api_url', None)
 
-        if not api_key:
-            return jsonify({'success': False, 'message': 'No API key configured for the selected provider'})
+        # Get the appropriate API key based on provider
+        if provider == 'gemini':
+            api_key = config.get('gemini_api_key')
+        elif provider == 'groq':
+            api_key = config.get('groq_api_key')
+        elif provider == 'ollama':
+            api_key = config.get('ollama_api_key')
+        elif provider == 'huggingface':
+            api_key = config.get('huggingface_api_key')
+        else:
+            api_key = config.get('llama_api_key')
+
+        if not api_key and provider not in ['ollama']: # Ollama might not require an API key directly here
+            return jsonify({'success': False, 'message': f'No API key configured for {provider}'})
 
         # Initialize the correct service based on the provider
         current_ai_service = None
@@ -105,10 +140,24 @@ def test_api_key():
             current_ai_service.set_api_key(api_key)
         elif provider == 'llama':
             # current_ai_service = LlamaService(api_key=api_key, api_url=api_url) # Assuming this is how LlamaService is initialized
-            # Placeholder for LlamaService
             current_ai_service = GeminiService() # Placeholder
             current_ai_service.set_api_key(api_key) # Placeholder
             app.logger.warning("LlamaService not fully implemented for testing. Using GeminiService as placeholder.")
+        elif provider == 'groq':
+            # current_ai_service = GroqService(api_key=api_key) # Assuming GroqService initialization
+            current_ai_service = GeminiService() # Placeholder
+            current_ai_service.set_api_key(api_key) # Placeholder
+            app.logger.warning("GroqService not fully implemented for testing. Using GeminiService as placeholder.")
+        elif provider == 'ollama':
+            # current_ai_service = OllamaService(api_url=api_url) # Assuming OllamaService initialization
+            current_ai_service = GeminiService() # Placeholder
+            # current_ai_service.set_api_key(api_key) # Placeholder, may not be applicable for Ollama
+            app.logger.warning("OllamaService not fully implemented for testing. Using GeminiService as placeholder.")
+        elif provider == 'huggingface':
+            # current_ai_service = HuggingFaceService(api_key=api_key) # Assuming HuggingFaceService initialization
+            current_ai_service = GeminiService() # Placeholder
+            current_ai_service.set_api_key(api_key) # Placeholder
+            app.logger.warning("HuggingFaceService not fully implemented for testing. Using GeminiService as placeholder.")
 
         if not current_ai_service:
             return jsonify({'success': False, 'message': f'AI service not initialized for provider: {provider}'})
@@ -156,11 +205,22 @@ def generate_app():
     try:
         config = load_config()
         provider = config.get('ai_provider', 'gemini')
-        api_key = config.get('gemini_api_key') if provider == 'gemini' else config.get('llama_api_key') # Adjust based on provider
         api_url = config.get('api_url', None)
 
-        if not api_key:
-            return jsonify({'success': False, 'message': 'No API key configured for the selected provider'})
+        # Get the appropriate API key based on provider
+        if provider == 'gemini':
+            api_key = config.get('gemini_api_key')
+        elif provider == 'groq':
+            api_key = config.get('groq_api_key')
+        elif provider == 'ollama':
+            api_key = config.get('ollama_api_key')
+        elif provider == 'huggingface':
+            api_key = config.get('huggingface_api_key')
+        else:
+            api_key = config.get('llama_api_key')
+
+        if not api_key and provider not in ['ollama']: # Ollama might not require an API key directly here
+            return jsonify({'success': False, 'message': f'No API key configured for {provider}'})
 
         prompt = request.form.get('prompt', '').strip()
         if not prompt:
@@ -180,10 +240,24 @@ def generate_app():
             current_ai_service.set_api_key(api_key)
         elif provider == 'llama':
             # current_ai_service = LlamaService(api_key=api_key, api_url=api_url) # Assuming this is how LlamaService is initialized
-            # Placeholder for LlamaService
             current_ai_service = GeminiService() # Placeholder
             current_ai_service.set_api_key(api_key) # Placeholder
             app.logger.warning("LlamaService not fully implemented for generation. Using GeminiService as placeholder.")
+        elif provider == 'groq':
+            # current_ai_service = GroqService(api_key=api_key) # Assuming GroqService initialization
+            current_ai_service = GeminiService() # Placeholder
+            current_ai_service.set_api_key(api_key) # Placeholder
+            app.logger.warning("GroqService not fully implemented for generation. Using GeminiService as placeholder.")
+        elif provider == 'ollama':
+            # current_ai_service = OllamaService(api_url=api_url) # Assuming OllamaService initialization
+            current_ai_service = GeminiService() # Placeholder
+            # current_ai_service.set_api_key(api_key) # Placeholder, may not be applicable for Ollama
+            app.logger.warning("OllamaService not fully implemented for generation. Using GeminiService as placeholder.")
+        elif provider == 'huggingface':
+            # current_ai_service = HuggingFaceService(api_key=api_key) # Assuming HuggingFaceService initialization
+            current_ai_service = GeminiService() # Placeholder
+            current_ai_service.set_api_key(api_key) # Placeholder
+            app.logger.warning("HuggingFaceService not fully implemented for generation. Using GeminiService as placeholder.")
 
         if not current_ai_service:
             return jsonify({'success': False, 'message': f'AI service not initialized for provider: {provider}'})
@@ -193,7 +267,7 @@ def generate_app():
         if not app_structure:
             return jsonify({'success': False, 'message': 'Failed to generate Android app structure'})
 
-        # Create Android project files
+        # Create Android files
         project_id = str(uuid.uuid4())
         project_path = android_generator.create_android_project(app_structure, project_id)
 
@@ -241,7 +315,7 @@ def download_project(project_id):
 
 @app.route('/download_source')
 def download_source():
-    """Download the complete source code as ZIP for Windows testing"""
+    """Download the complete source code as ZIP file"""
     try:
         zip_path = 'android-app-generator-windows.zip'
         if os.path.exists(zip_path):
@@ -260,11 +334,22 @@ def update_preview():
     try:
         config = load_config()
         provider = config.get('ai_provider', 'gemini')
-        api_key = config.get('gemini_api_key') if provider == 'gemini' else config.get('llama_api_key') # Adjust based on provider
         api_url = config.get('api_url', None)
 
-        if not api_key:
-            return jsonify({'success': False, 'message': 'No API key configured for the selected provider'})
+        # Get the appropriate API key based on provider
+        if provider == 'gemini':
+            api_key = config.get('gemini_api_key')
+        elif provider == 'groq':
+            api_key = config.get('groq_api_key')
+        elif provider == 'ollama':
+            api_key = config.get('ollama_api_key')
+        elif provider == 'huggingface':
+            api_key = config.get('huggingface_api_key')
+        else:
+            api_key = config.get('llama_api_key')
+
+        if not api_key and provider not in ['ollama']: # Ollama might not require an API key directly here
+            return jsonify({'success': False, 'message': f'No API key configured for {provider}'})
 
         prompt = request.form.get('prompt', '').strip()
         if not prompt:
@@ -284,10 +369,24 @@ def update_preview():
             current_ai_service.set_api_key(api_key)
         elif provider == 'llama':
             # current_ai_service = LlamaService(api_key=api_key, api_url=api_url) # Assuming this is how LlamaService is initialized
-            # Placeholder for LlamaService
             current_ai_service = GeminiService() # Placeholder
             current_ai_service.set_api_key(api_key) # Placeholder
             app.logger.warning("LlamaService not fully implemented for preview. Using GeminiService as placeholder.")
+        elif provider == 'groq':
+            # current_ai_service = GroqService(api_key=api_key) # Assuming GroqService initialization
+            current_ai_service = GeminiService() # Placeholder
+            current_ai_service.set_api_key(api_key) # Placeholder
+            app.logger.warning("GroqService not fully implemented for preview. Using GeminiService as placeholder.")
+        elif provider == 'ollama':
+            # current_ai_service = OllamaService(api_url=api_url) # Assuming OllamaService initialization
+            current_ai_service = GeminiService() # Placeholder
+            # current_ai_service.set_api_key(api_key) # Placeholder, may not be applicable for Ollama
+            app.logger.warning("OllamaService not fully implemented for preview. Using GeminiService as placeholder.")
+        elif provider == 'huggingface':
+            # current_ai_service = HuggingFaceService(api_key=api_key) # Assuming HuggingFaceService initialization
+            current_ai_service = GeminiService() # Placeholder
+            current_ai_service.set_api_key(api_key) # Placeholder
+            app.logger.warning("HuggingFaceService not fully implemented for preview. Using GeminiService as placeholder.")
 
         if not current_ai_service:
             return jsonify({'success': False, 'message': f'AI service not initialized for provider: {provider}'})
