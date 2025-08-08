@@ -1,2 +1,14 @@
 [nix]
 channel = "stable-25_05"
+
+[workflows]
+runButton = "Run Android App Generator"
+
+[[workflows.workflow]]
+name = "Run Android App Generator"
+author = 46139905
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
