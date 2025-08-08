@@ -147,12 +147,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             try {
-                const formData = new FormData();
-                formData.append('api_key', apiKey);
+                const provider = document.getElementById('provider').value;
+                const apiUrl = document.getElementById('apiUrl').value;
+
+                const requestData = {
+                    api_key: apiKey,
+                    provider: provider,
+                    api_url: apiUrl
+                };
 
                 const response = await fetch('/save_api_key', {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
                 });
 
                 const result = await response.json();
