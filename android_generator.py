@@ -209,12 +209,13 @@ class AndroidGenerator:
         return f'''apply plugin: 'com.android.application'
 
 android {{
-    compileSdk 33
+    namespace '{package_name}'
+    compileSdk 34
 
     defaultConfig {{
         applicationId "{package_name}"
         minSdk 21
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -228,8 +229,8 @@ android {{
         }}
     }}
     compileOptions {{
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }}
 }}
 
@@ -246,8 +247,8 @@ dependencies {{
         """Generate project-level build.gradle"""
         return '''// Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    id 'com.android.application' version '7.4.0' apply false
-    id 'com.android.library' version '7.4.0' apply false
+    id 'com.android.application' version '8.1.4' apply false
+    id 'com.android.library' version '8.1.4' apply false
 }
 
 task clean(type: Delete) {
@@ -276,7 +277,9 @@ android.useAndroidX=true
 # Enables namespacing of each library's R class so that its R class includes only the
 # resources declared in the library itself and none from the library's dependencies,
 # thereby reducing the size of the R class for that library
-android.nonTransitiveRClass=true'''
+android.nonTransitiveRClass=true
+# Automatically convert third-party libraries to use AndroidX
+android.enableJetifier=true'''
     
     def generate_readme(self, app_structure):
         """Generate README.md for the Android project"""
