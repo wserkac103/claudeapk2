@@ -214,12 +214,12 @@ class AndroidGenerator:
 
 android {{
     namespace '{package_name}'
-    compileSdk 34
+    compileSdk 33
 
     defaultConfig {{
         applicationId "{package_name}"
         minSdk 21
-        targetSdk 34
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -251,8 +251,8 @@ dependencies {{
         """Generate project-level build.gradle"""
         return '''// Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
-    id 'com.android.application' version '8.1.4' apply false
-    id 'com.android.library' version '8.1.4' apply false
+    id 'com.android.application' version '7.4.2' apply false
+    id 'com.android.library' version '7.4.2' apply false
 }
 
 task clean(type: Delete) {
@@ -294,7 +294,7 @@ android.enableJetifier=true'''
         with open(os.path.join(gradle_wrapper_dir, 'gradle-wrapper.properties'), 'w') as f:
             f.write("distributionBase=GRADLE_USER_HOME\n")
             f.write("distributionPath=wrapper/dists\n")
-            f.write("distributionUrl=https\\://services.gradle.org/distributions/gradle-8.2-bin.zip\n")
+            f.write("distributionUrl=https\\://services.gradle.org/distributions/gradle-7.6-bin.zip\n")
             f.write("zipStoreBase=GRADLE_USER_HOME\n")
             f.write("zipStorePath=wrapper/dists\n")
 
