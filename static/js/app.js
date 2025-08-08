@@ -112,6 +112,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Add missing utility functions
+    function showGenerationStatus(message, type) {
+        const statusElement = document.getElementById('generationStatus');
+        if (statusElement) {
+            statusElement.innerHTML = `
+                <div class="alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+        }
+    }
+
+    function showLoadingModal(title, message) {
+        // Create or show loading modal
+        let modal = document.getElementById('loadingModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'loadingModal';
+            modal.className = 'modal fade';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-body text-center">
+                            <div class="spinner-border mb-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h5 id="loadingTitle">${title}</h5>
+                            <p id="loadingMessage">${message}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        } else {
+            document.getElementById('loadingTitle').textContent = title;
+            document.getElementById('loadingMessage').textContent = message;
+        }
+        
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+    }
+
+    function hideLoadingModal() {
+        const modal = document.getElementById('loadingModal');
+        if (modal) {
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+            }
+        }
+    }
+
     // Image upload functionality
     if (imageUpload) {
         imageUpload.addEventListener('change', function(e) {
@@ -138,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(result => {
                 if (result.success) {
                     uploadedImageFilename = result.filename;
+                    showGenerationStatus('Image uploaded successfully', 'success');
                 } else {
                     showGenerationStatus(result.message, 'error');
                     if (imagePreview) imagePreview.style.display = 'none';
@@ -148,6 +202,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (imagePreview) imagePreview.style.display = 'none';
             });
         });
+    }
+
+    // Add missing showApiStatus function
+    function showApiStatus(message, type) {
+        const statusElement = document.getElementById('apiStatus');
+        if (statusElement) {
+            statusElement.innerHTML = `
+                <div class="alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+        }
     }
 
     if (removeImageBtn) {
