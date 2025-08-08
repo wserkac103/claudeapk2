@@ -1,0 +1,178 @@
+/* Custom styles for the Android App Generator */
+
+body {
+    background: var(--bs-body-bg);
+    min-height: 100vh;
+}
+
+/* Phone preview styling */
+.phone-preview {
+    max-width: 350px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 25px;
+    padding: 20px 15px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.phone-preview::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 6px;
+    background: #333;
+    border-radius: 3px;
+}
+
+/* Card enhancements */
+.card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* Loading states */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Image preview */
+#imagePreview img {
+    max-height: 200px;
+    width: 100%;
+    object-fit: cover;
+}
+
+/* Form enhancements */
+.form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Button enhancements */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Navigation */
+.navbar {
+    background: var(--bs-dark) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+/* Footer */
+footer {
+    background: var(--bs-dark);
+    color: var(--bs-light);
+    margin-top: auto;
+}
+
+/* Alert customizations */
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+/* Preview panel specific styling */
+#appPreview .card {
+    background: #f8f9fa;
+    color: #333;
+}
+
+#appPreview .card-header {
+    font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .phone-preview {
+        max-width: 100%;
+        margin: 0;
+    }
+    
+    .container {
+        padding: 0 15px;
+    }
+}
+
+/* Code syntax highlighting for preview */
+.preview-code {
+    background: var(--bs-gray-100);
+    border-radius: 4px;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 0.9em;
+    overflow-x: auto;
+}
+
+/* Status indicators */
+.status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.status-success {
+    background-color: var(--bs-success);
+}
+
+.status-error {
+    background-color: var(--bs-danger);
+}
+
+.status-warning {
+    background-color: var(--bs-warning);
+}
+
+/* Animation for loading states */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.loading-pulse {
+    animation: pulse 1.5s infinite;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bs-gray-200);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--bs-gray-400);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--bs-gray-500);
+}

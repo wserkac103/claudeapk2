@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <!-- API Configuration Panel -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-key"></i>
+                    API Configuration
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="apiKey" class="form-label">Gemini API Key</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="apiKey" placeholder="Enter your Gemini API key">
+                        <button class="btn btn-outline-secondary" type="button" id="toggleApiKey">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        Get your API key from 
+                        <a href="https://ai.google.dev/" target="_blank">Google AI Studio</a>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary" id="saveApiKey">
+                        <i class="fas fa-save"></i>
+                        Save API Key
+                    </button>
+                    <button type="button" class="btn btn-outline-success" id="testApiKey" {% if not api_key_set %}disabled{% endif %}>
+                        <i class="fas fa-check-circle"></i>
+                        Test Connection
+                    </button>
+                </div>
+                
+                <div id="apiStatus" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- Image Upload Panel -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-image"></i>
+                    GUI Design Reference
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <input type="file" class="form-control" id="imageUpload" accept="image/*">
+                    <div class="form-text">
+                        Upload an image to help guide the app's design
+                    </div>
+                </div>
+                
+                <div id="imagePreview" class="mt-3" style="display: none;">
+                    <img id="previewImg" class="img-fluid rounded" alt="Design reference">
+                    <button type="button" class="btn btn-sm btn-outline-danger mt-2" id="removeImage">
+                        <i class="fas fa-times"></i>
+                        Remove Image
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Generation Panel -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cogs"></i>
+                    Android App Generator
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="appGeneratorForm">
+                    <div class="mb-3">
+                        <label for="appPrompt" class="form-label">App Description</label>
+                        <textarea class="form-control" id="appPrompt" rows="5" 
+                                  placeholder="Describe the Android app you want to create. Be specific about functionality, layout, colors, and features. For example: 'Create a todo app with a modern blue theme, featuring a list of tasks, add/edit buttons, and checkboxes to mark completed items.'"></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-outline-primary" id="updatePreview">
+                            <i class="fas fa-eye"></i>
+                            Update Preview
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-mobile-alt"></i>
+                            Generate Android App
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="generationStatus" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="card mt-4" id="previewPanel" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-mobile-alt"></i>
+                    App Preview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mx-auto">
+                        <div id="appPreview" class="phone-preview">
+                            <!-- Preview content will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Panel -->
+        <div class="card mt-4" id="downloadPanel" style="display: none;">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-download"></i>
+                    Download Project
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Your Android app has been generated successfully!</p>
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-primary" id="downloadBtn">
+                        <i class="fas fa-download"></i>
+                        Download Android Project ZIP
+                    </a>
+                </div>
+                <div class="mt-3">
+                    <h6>Next Steps:</h6>
+                    <ol class="small">
+                        <li>Extract the downloaded ZIP file</li>
+                        <li>Open Android Studio</li>
+                        <li>Select "Open an existing Android Studio project"</li>
+                        <li>Navigate to the extracted folder and select it</li>
+                        <li>Wait for Gradle sync to complete</li>
+                        <li>Build and run your app!</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 id="loadingText">Generating your Android app...</h5>
+                <p class="text-muted mb-0" id="loadingSubtext">This may take a few moments</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // API Key status
+    const apiKeySet = {{ api_key_set|tojson }};
+    
+    // Wait for the app.js to load first
+    document.addEventListener('DOMContentLoaded', function() {
+        if (apiKeySet) {
+            document.getElementById('testApiKey').disabled = false;
+            showApiStatus('API key is configured', 'success');
+        }
+    });
+</script>
+{% endblock %}

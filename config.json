@@ -1,0 +1,17 @@
+{
+  "version": "1.0.0",
+  "app_name": "Android App Generator",
+  "default_settings": {
+    "max_file_size": "16MB",
+    "supported_image_formats": [
+      "png",
+      "jpg",
+      "jpeg",
+      "gif",
+      "webp"
+    ],
+    "default_android_sdk": 33,
+    "min_android_sdk": 21
+  },
+  "gemini_api_key": "AIzaSyBBPNjWUu5mAW3FG6pHvMpnQ08qQsLpkh8"
+}

@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Two Buttons App</string>
+    <string name="button_1_text">Button 1</string>
+    <string name="button_2_text">Button 2</string>
+    <string name="toast_message_1">Button 1 Clicked!</string>
+    <string name="toast_message_2">Button 2 Clicked!</string>
+</resources>
