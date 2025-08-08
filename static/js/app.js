@@ -28,24 +28,110 @@ document.addEventListener('DOMContentLoaded', function() {
     function showApiStatus(message, type) {
         const statusDiv = document.getElementById('apiStatus');
         if (statusDiv) {
-            statusDiv.innerHTML = `<div class="alert alert-${type === 'success' ? 'success' : 'danger'}" role="alert">${message}</div>`;
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            statusDiv.innerHTML = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            
+            // Check for rate limit messages and show popup
+            if (message.toLowerCase().includes('rate limit') || 
+                message.toLowerCase().includes('quota') || 
+                message.toLowerCase().includes('limit exceeded')) {
+                showRateLimitPopup(message);
+            }
         }
     }
 
     function showGenerationStatus(message, type) {
-        const alertClass = type === 'success' ? 'alert-success' : 
-                          type === 'error' ? 'alert-danger' : 'alert-info';
-        generationStatusDiv.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+        const statusDiv = document.getElementById('generationStatus');
+        if (statusDiv) {
+            const alertClass = type === 'success' ? 'alert-success' : 
+                              type === 'error' ? 'alert-danger' : 'alert-info';
+            statusDiv.innerHTML = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            
+            // Check for rate limit messages and show popup
+            if (message.toLowerCase().includes('rate limit') || 
+                message.toLowerCase().includes('quota') || 
+                message.toLowerCase().includes('limit exceeded')) {
+                showRateLimitPopup(message);
+            }
+        }
     }
 
     function showLoadingModal(title, subtitle) {
-        document.getElementById('loadingText').textContent = title;
-        document.getElementById('loadingSubtext').textContent = subtitle;
-        loadingModal.show();
+        const titleElement = document.getElementById('loadingText');
+        const subtitleElement = document.getElementById('loadingSubtext');
+        
+        if (titleElement) titleElement.textContent = title;
+        if (subtitleElement) subtitleElement.textContent = subtitle;
+        
+        if (loadingModal) loadingModal.show();
     }
 
     function hideLoadingModal() {
-        loadingModal.hide();
+        if (loadingModal) loadingModal.hide();
+    }
+
+    function showRateLimitPopup(message) {
+        // Create rate limit popup modal
+        let popup = document.getElementById('rateLimitPopup');
+        if (!popup) {
+            popup = document.createElement('div');
+            popup.id = 'rateLimitPopup';
+            popup.className = 'modal fade';
+            popup.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning text-dark">
+                            <h5 class="modal-title">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                API Rate Limit Reached
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-warning mb-3">
+                                <strong>Gemini API Limit:</strong> You've reached the free tier quota limit.
+                            </div>
+                            <p><strong>What this means:</strong></p>
+                            <ul>
+                                <li>Your free API requests have been exhausted</li>
+                                <li>The app will use fallback functionality</li>
+                                <li>Generated apps will have basic structure only</li>
+                            </ul>
+                            <p><strong>Solutions:</strong></p>
+                            <ul>
+                                <li>Wait for quota reset (usually 24 hours)</li>
+                                <li>Upgrade to a paid Gemini API plan</li>
+                                <li>Try simpler app descriptions</li>
+                            </ul>
+                            <div class="mt-3">
+                                <small class="text-muted">Error details: ${message}</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <a href="https://ai.google.dev/pricing" target="_blank" class="btn btn-primary">
+                                <i class="fas fa-external-link-alt me-1"></i>
+                                View Gemini Pricing
+                            </a>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(popup);
+        }
+        
+        const bsModal = new bootstrap.Modal(popup);
+        bsModal.show();
     }
 
     // API Key functionality
@@ -112,18 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Add missing utility functions
-    function showGenerationStatus(message, type) {
-        const statusElement = document.getElementById('generationStatus');
-        if (statusElement) {
-            statusElement.innerHTML = `
-                <div class="alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-        }
-    }
+    
 
     function showLoadingModal(title, message) {
         // Create or show loading modal
@@ -204,18 +279,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Add missing showApiStatus function
-    function showApiStatus(message, type) {
-        const statusElement = document.getElementById('apiStatus');
-        if (statusElement) {
-            statusElement.innerHTML = `
-                <div class="alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-        }
-    }
+    
 
     if (removeImageBtn) {
         removeImageBtn.addEventListener('click', function() {

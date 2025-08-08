@@ -35,8 +35,14 @@ class GeminiService:
                 return False, "API response was empty"
 
         except Exception as e:
-            logging.error(f"Error testing API connection: {str(e)}")
-            return False, f"API connection failed: {str(e)}"
+            error_msg = str(e)
+            logging.error(f"Error testing API connection: {error_msg}")
+            
+            # Check for rate limit errors
+            if any(keyword in error_msg.lower() for keyword in ['rate limit', 'quota', 'limit exceeded', '429']):
+                return False, f"Gemini API rate limit exceeded. Please wait or upgrade your plan. Details: {error_msg}"
+            else:
+                return False, f"API connection failed: {error_msg}"
 
     def analyze_image(self, image_path):
         """Analyze uploaded image for GUI design insights"""
@@ -166,7 +172,18 @@ Make sure all code is complete, functional, and follows Android development best
                     return None
 
         except Exception as e:
-            logging.error(f"Error generating Android app: {str(e)}")
+            error_msg = str(e)
+            logging.error(f"Error generating Android app: {error_msg}")
+            
+            # Check for rate limit errors and log them specifically
+            if any(keyword in error_msg.lower() for keyword in ['rate limit', 'quota', 'limit exceeded', '429']):
+                logging.warning(f"Gemini API rate limit hit: {error_msg}")
+                # Still return fallback but with rate limit context
+                fallback = self.get_fallback_app_structure(prompt)
+                fallback['rate_limit_hit'] = True
+                fallback['error_message'] = f"API rate limit exceeded: {error_msg}"
+                return fallback
+            
             # Always return a fallback structure when API fails
             return self.get_fallback_app_structure(prompt)
 
