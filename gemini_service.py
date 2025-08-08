@@ -5,7 +5,7 @@ import json
 import requests
 from PIL import Image
 
-class AIService:
+class GeminiService:
     def __init__(self):
         self.api_key = None
         self.provider = "gemini"  # Default provider
