@@ -15,6 +15,15 @@ mode = "sequential"
 task = "shell.exec"
 args = "python main.py"
 
+[[workflows.workflow]]
+name = "Run Android App Generator"
+author = 46139905
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./start.sh"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
