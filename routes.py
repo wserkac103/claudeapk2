@@ -243,9 +243,11 @@ def generate_app():
             return jsonify({'success': False, 'message': f'AI service not initialized for provider: {provider}'})
 
         # Generate Android app structure
+        app.logger.info(f"Generating app with provider: {provider}")
         app_structure = current_ai_service.generate_android_app(prompt, image_path)
         if not app_structure:
-            return jsonify({'success': False, 'message': 'Failed to generate Android app structure'})
+            app.logger.error("generate_android_app returned None")
+            return jsonify({'success': False, 'message': 'Failed to generate Android app structure. Please try again or check your API configuration.'})
 
         # Create Android files
         project_id = str(uuid.uuid4())

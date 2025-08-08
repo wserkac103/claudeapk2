@@ -17,7 +17,7 @@ class GeminiService:
             self.api_key = api_key
             self.provider = provider.lower()
             self.api_url = api_url
-            
+
             if self.provider == "gemini":
                 genai.configure(api_key=api_key)
             elif self.provider == "ollama":
@@ -30,7 +30,7 @@ class GeminiService:
             elif self.provider == "huggingface":
                 # Hugging Face Inference API
                 self.api_url = api_url or "https://api-inference.huggingface.co/models"
-            
+
             return True
         except Exception as e:
             logging.error(f"Error setting API key: {str(e)}")
@@ -50,14 +50,14 @@ class GeminiService:
                     return True, f"API connected. Response: {response.text[:100]}"
                 else:
                     return False, "API response was empty"
-            
+
             elif self.provider == "ollama":
                 response = requests.get(f"{self.api_url}/api/tags")
                 if response.status_code == 200:
                     return True, "Ollama connection successful"
                 else:
                     return False, "Ollama server not responding"
-            
+
             elif self.provider == "groq":
                 headers = {"Authorization": f"Bearer {self.api_key}"}
                 data = {
@@ -69,7 +69,7 @@ class GeminiService:
                     return True, "Groq API connection successful"
                 else:
                     return False, f"Groq API error: {response.status_code}"
-            
+
             elif self.provider == "huggingface":
                 headers = {"Authorization": f"Bearer {self.api_key}"}
                 response = requests.post(f"{self.api_url}/microsoft/DialoGPT-medium", 
@@ -79,13 +79,13 @@ class GeminiService:
                     return True, "Hugging Face API connection successful"
                 else:
                     return False, f"Hugging Face API error: {response.status_code}"
-            
+
             return False, "Unknown provider"
 
         except Exception as e:
             error_msg = str(e)
             logging.error(f"Error testing API connection: {error_msg}")
-            
+
             # Check for rate limit errors
             if any(keyword in error_msg.lower() for keyword in ['rate limit', 'quota', 'limit exceeded', '429']):
                 return False, f"{self.provider.title()} API rate limit exceeded. Please wait or upgrade your plan. Details: {error_msg}"
@@ -105,7 +105,7 @@ class GeminiService:
                 else:
                     response = model.generate_content(prompt)
                 return response.text if response.text else None
-            
+
             elif self.provider == "ollama":
                 data = {
                     "model": "llama3.2",  # Default Llama model
@@ -116,18 +116,23 @@ class GeminiService:
                 if response.status_code == 200:
                     return response.json().get("response")
                 return None
-            
+
             elif self.provider == "groq":
                 headers = {"Authorization": f"Bearer {self.api_key}"}
                 data = {
                     "messages": [{"role": "user", "content": prompt}],
                     "model": "llama3-8b-8192"
                 }
+                logging.info(f"Sending request to Groq API for Android generation")
                 response = requests.post(f"{self.api_url}/chat/completions", headers=headers, json=data)
                 if response.status_code == 200:
-                    return response.json()["choices"][0]["message"]["content"]
+                    result = response.json()["choices"][0]["message"]["content"]
+                    logging.info(f"Groq API response received, length: {len(result) if result else 0}")
+                    return result
+                else:
+                    logging.error(f"Groq API error: {response.status_code}, {response.text}")
                 return None
-            
+
             elif self.provider == "huggingface":
                 headers = {"Authorization": f"Bearer {self.api_key}"}
                 data = {"inputs": prompt}
@@ -138,7 +143,7 @@ class GeminiService:
                     if isinstance(result, list) and len(result) > 0:
                         return result[0].get("generated_text", "")
                 return None
-            
+
             return None
         except Exception as e:
             logging.error(f"Error generating content with {self.provider}: {str(e)}")
@@ -151,19 +156,19 @@ class GeminiService:
                 return None
 
             model = genai.GenerativeModel('gemini-1.5-pro')
-            
+
             # Load and prepare the image
             with open(image_path, "rb") as f:
                 image_data = f.read()
-            
+
             # Create the image part
             image_part = {
                 "mime_type": "image/jpeg",
                 "data": image_data
             }
-            
+
             prompt = "Analyze this image and describe what kind of mobile app UI design it represents. Focus on layout, colors, components, and user interface elements that could be implemented in an Android app."
-            
+
             response = model.generate_content([prompt, image_part])
             return response.text if response.text else "Could not analyze image"
 
@@ -251,7 +256,7 @@ Make sure all code is complete, functional, and follows Android development best
             except json.JSONDecodeError as e:
                 logging.error(f"JSON decode error: {str(e)}")
                 # Try to extract JSON from the response
-                text = response.text.strip()
+                text = response_text.strip() # Use response_text here, not response
                 start = text.find('{')
                 end = text.rfind('}') + 1
 
@@ -272,7 +277,7 @@ Make sure all code is complete, functional, and follows Android development best
         except Exception as e:
             error_msg = str(e)
             logging.error(f"Error generating Android app: {error_msg}")
-            
+
             # Check for rate limit errors and log them specifically
             if any(keyword in error_msg.lower() for keyword in ['rate limit', 'quota', 'limit exceeded', '429']):
                 logging.warning(f"Gemini API rate limit hit: {error_msg}")
@@ -281,7 +286,7 @@ Make sure all code is complete, functional, and follows Android development best
                 fallback['rate_limit_hit'] = True
                 fallback['error_message'] = f"API rate limit exceeded: {error_msg}"
                 return fallback
-            
+
             # Always return a fallback structure when API fails
             return self.get_fallback_app_structure(prompt)
 
