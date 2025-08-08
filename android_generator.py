@@ -17,6 +17,8 @@ class AndroidGenerator:
     def create_android_project(self, app_structure, project_id):
         """Create complete Android project structure with generated code"""
         try:
+            # Clean app_structure of problematic Unicode characters
+            app_structure = self.sanitize_app_structure(app_structure)
             project_path = os.path.join(app.config['GENERATED_PROJECTS_FOLDER'], project_id)
             os.makedirs(project_path, exist_ok=True)
 
@@ -43,7 +45,7 @@ class AndroidGenerator:
             # Create MainActivity.java
             main_activity = app_structure.get('main_activity', {})
             if main_activity.get('java_code'):
-                with open(os.path.join(project_path, f'app/src/main/java/{package_path}/MainActivity.java'), 'w') as f:
+                with open(os.path.join(project_path, f'app/src/main/java/{package_path}/MainActivity.java'), 'w', encoding='utf-8') as f:
                     f.write(main_activity['java_code'])
 
             # Create additional activities
@@ -51,20 +53,20 @@ class AndroidGenerator:
             for activity in additional_activities:
                 if activity.get('java_code'):
                     activity_name = activity.get('name', 'Activity')
-                    with open(os.path.join(project_path, f'app/src/main/java/{package_path}/{activity_name}.java'), 'w') as f:
+                    with open(os.path.join(project_path, f'app/src/main/java/{package_path}/{activity_name}.java'), 'w', encoding='utf-8') as f:
                         f.write(activity['java_code'])
 
             # Create layout files
             if main_activity.get('xml_layout'):
                 layout_name = main_activity.get('layout', 'activity_main')
-                with open(os.path.join(project_path, f'app/src/main/res/layout/{layout_name}.xml'), 'w') as f:
+                with open(os.path.join(project_path, f'app/src/main/res/layout/{layout_name}.xml'), 'w', encoding='utf-8') as f:
                     f.write(main_activity['xml_layout'])
 
             # Create additional layout files
             for activity in additional_activities:
                 if activity.get('xml_layout'):
                     layout_name = activity.get('layout', 'layout')
-                    with open(os.path.join(project_path, f'app/src/main/res/layout/{layout_name}.xml'), 'w') as f:
+                    with open(os.path.join(project_path, f'app/src/main/res/layout/{layout_name}.xml'), 'w', encoding='utf-8') as f:
                         f.write(activity['xml_layout'])
 
             # Create resource files
@@ -76,36 +78,36 @@ class AndroidGenerator:
 
             for filename, content in resource_files.items():
                 if content:
-                    with open(os.path.join(project_path, f'app/src/main/res/values/{filename}'), 'w') as f:
+                    with open(os.path.join(project_path, f'app/src/main/res/values/{filename}'), 'w', encoding='utf-8') as f:
                         f.write(content)
 
             # Create AndroidManifest.xml
             if app_structure.get('manifest'):
-                with open(os.path.join(project_path, 'app/src/main/AndroidManifest.xml'), 'w') as f:
+                with open(os.path.join(project_path, 'app/src/main/AndroidManifest.xml'), 'w', encoding='utf-8') as f:
                     f.write(app_structure['manifest'])
 
             # Create build.gradle
             if app_structure.get('gradle'):
-                with open(os.path.join(project_path, 'app/build.gradle'), 'w') as f:
+                with open(os.path.join(project_path, 'app/build.gradle'), 'w', encoding='utf-8') as f:
                     f.write(app_structure['gradle'])
             else:
                 # Create default build.gradle
                 default_gradle = self.generate_default_gradle(app_structure)
-                with open(os.path.join(project_path, 'app/build.gradle'), 'w') as f:
+                with open(os.path.join(project_path, 'app/build.gradle'), 'w', encoding='utf-8') as f:
                     f.write(default_gradle)
 
             # Create project-level build.gradle
             project_gradle = self.generate_project_gradle()
-            with open(os.path.join(project_path, 'build.gradle'), 'w') as f:
+            with open(os.path.join(project_path, 'build.gradle'), 'w', encoding='utf-8') as f:
                 f.write(project_gradle)
 
             # Create settings.gradle
-            with open(os.path.join(project_path, 'settings.gradle'), 'w') as f:
+            with open(os.path.join(project_path, 'settings.gradle'), 'w', encoding='utf-8') as f:
                 f.write("include ':app'\n")
 
             # Create gradle.properties
             gradle_props = self.generate_gradle_properties()
-            with open(os.path.join(project_path, 'gradle.properties'), 'w') as f:
+            with open(os.path.join(project_path, 'gradle.properties'), 'w', encoding='utf-8') as f:
                 f.write(gradle_props)
 
             # Create Gradle wrapper files
@@ -113,7 +115,7 @@ class AndroidGenerator:
 
             # Create README.md
             readme_content = self.generate_readme(app_structure)
-            with open(os.path.join(project_path, 'README.md'), 'w') as f:
+            with open(os.path.join(project_path, 'README.md'), 'w', encoding='utf-8') as f:
                 f.write(readme_content)
 
             return project_path
@@ -121,6 +123,25 @@ class AndroidGenerator:
         except Exception as e:
             logging.error(f"Error creating Android project: {str(e)}")
             return None
+
+    def sanitize_app_structure(self, app_structure):
+        """Remove or replace problematic Unicode characters"""
+        import json
+        try:
+            # Convert to JSON string and back to handle encoding
+            json_str = json.dumps(app_structure, ensure_ascii=True)
+            return json.loads(json_str)
+        except:
+            # If that fails, recursively clean the structure
+            if isinstance(app_structure, dict):
+                return {k: self.sanitize_app_structure(v) for k, v in app_structure.items()}
+            elif isinstance(app_structure, list):
+                return [self.sanitize_app_structure(item) for item in app_structure]
+            elif isinstance(app_structure, str):
+                # Replace problematic Unicode characters
+                return app_structure.encode('ascii', 'ignore').decode('ascii')
+            else:
+                return app_structure
 
     def generate_preview_html(self, app_structure):
         """Generate HTML preview of the Android app GUI"""
@@ -291,7 +312,7 @@ android.enableJetifier=true'''
         os.makedirs(gradle_wrapper_dir, exist_ok=True)
 
         # Create gradle-wrapper.properties
-        with open(os.path.join(gradle_wrapper_dir, 'gradle-wrapper.properties'), 'w') as f:
+        with open(os.path.join(gradle_wrapper_dir, 'gradle-wrapper.properties'), 'w', encoding='utf-8') as f:
             f.write("distributionBase=GRADLE_USER_HOME\n")
             f.write("distributionPath=wrapper/dists\n")
             f.write("distributionUrl=https\\://services.gradle.org/distributions/gradle-8.0-bin.zip\n")
@@ -299,13 +320,13 @@ android.enableJetifier=true'''
             f.write("zipStorePath=wrapper/dists\n")
 
         # Create gradlew (Linux/macOS)
-        with open(os.path.join(project_path, 'gradlew'), 'w') as f:
+        with open(os.path.join(project_path, 'gradlew'), 'w', encoding='utf-8') as f:
             f.write("#!/usr/bin/env sh\n")
             f.write("eval \"$(dirname $0)/gradlew\" \"$@\"\n")
         os.chmod(os.path.join(project_path, 'gradlew'), 0o755)
 
         # Create gradlew.bat (Windows)
-        with open(os.path.join(project_path, 'gradlew.bat'), 'w') as f:
+        with open(os.path.join(project_path, 'gradlew.bat'), 'w', encoding='utf-8') as f:
             f.write("@echo off\n")
             f.write("if not defined PROG do set PROG=%0\n")
             f.write("call \"%PROG%\" --sys-prop org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8 \"%@\"\n")
