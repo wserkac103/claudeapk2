@@ -15,5 +15,6 @@
   },
   "gemini_api_key": "AIzaSyCxqgVkz-6OD_J_wSfx5c5qQ2AljCC7kjE",
   "ai_provider": "groq",
-  "api_url": ""
+  "api_url": "",
+  "groq_api_key": "Unsupported AI provider: groq"
 }
