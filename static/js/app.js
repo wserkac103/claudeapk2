@@ -66,15 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function showLoadingModal(title, subtitle) {
-        const titleElement = document.getElementById('loadingText');
-        const subtitleElement = document.getElementById('loadingSubtext');
-        
-        if (titleElement) titleElement.textContent = title;
-        if (subtitleElement) subtitleElement.textContent = subtitle;
-        
-        if (loadingModal) loadingModal.show();
-    }
+    
 
     function hideLoadingModal() {
         if (loadingModal) loadingModal.hide();
@@ -222,8 +214,10 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             document.body.appendChild(modal);
         } else {
-            document.getElementById('loadingTitle').textContent = title;
-            document.getElementById('loadingMessage').textContent = message;
+            const titleElement = document.getElementById('loadingTitle');
+            const messageElement = document.getElementById('loadingMessage');
+            if (titleElement) titleElement.textContent = title;
+            if (messageElement) messageElement.textContent = message;
         }
         
         const bsModal = new bootstrap.Modal(modal);
